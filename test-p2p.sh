@@ -189,9 +189,9 @@ run_remote()
     local rport=$2
     local lround=$3
     local amount=5
-    local sshcmd="ssh -n "
+    local sshcmd="ssh -n -p${rport} ${rhost}"
     echo -ne "Contacting $rhost via $rport"
-    $sshcmd -p$rport $rhost "ls -l" > /dev/null 2>&1
+    $sshcmd "ls -l" > /dev/null 2>&1
     if [ $? -eq 0 ]; then
         show_ok
     else
@@ -209,12 +209,12 @@ run_remote()
 
     echo -ne "Starting daemon on remote host"
 
-    $sshcmd -p$rport $rhost "sudo $REMOTE_APP daemon > $LOG_PATH 2>&1 &"
+    $sshcmd "sudo $REMOTE_APP daemon > $LOG_PATH 2>&1 &"
     
     remote_started=0
     for i in {1..10}; do
         sleep 3
-        out=`ssh -p$rport $rhost '/tmp/p2p show > /dev/null 2>&1'`
+        out=`$sshcmd '/tmp/p2p show > /dev/null 2>&1'`
         if [ $? -eq 0 ]; then
             remote_started=1
             show_ok
@@ -226,9 +226,9 @@ run_remote()
         unrecoverable
     fi
 
-    $sshcmd -p$rport $rhost "$REMOTE_APP set -log DEBUG > /dev/null 2>&1 &"
+    $sshcmd "$REMOTE_APP set -log DEBUG > /dev/null 2>&1 &"
     echo -ne "Starting env-${PREFIX}-1 remotely"
-    $sshcmd -p$rport $rhost "$REMOTE_APP start -ip 10.100.1.${lround} -hash $PREFIX-working-env-1 -key working-key-1 > /dev/null 2>&1 &"
+    $sshcmd "$REMOTE_APP start -ip 10.100.1.${lround} -hash $PREFIX-working-env-1 -key working-key-1 > /dev/null 2>&1 &"
     if [ $? -eq 0 ]; then
         show_ok
     else
@@ -322,21 +322,6 @@ run_file()
         fi
     done
     
-    exit 0
-}
-
-stop_local_darwin()
-{
-    echo -ne "Stopping local p2p"
-    sudo launchctl unload /Library/LaunchDaemons/io.subutai.p2p.daemon.plist >/dev/null 2>&1
-    sudo killall -9 p2p >/dev/null 2>&1
-    show_ok
-}
-
-stop_local_linux()
-{
-    echo -ne "Stopping local p2p"
-    sudo
 }
 
 run_local()
