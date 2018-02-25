@@ -247,14 +247,26 @@ stop_test()
     local rhost=$1
     local rport=$2
     local lround=$3
-    local sshcmd="ssh -n "
-    echo -ne "Stopping on $rhost via $rport"
-    $sshcmd -p$rport $rhost "killall -9 p2p > /dev/null 2>&1" > /dev/null 2>&1
-    $sshcmd -p$rport $rhost "killall -9 snap.subutai.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
-    $sshcmd -p$rport $rhost "killall -9 snap.subutai-master.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
-    $sshcmd -p$rport $rhost "killall -9 snap.subutai-dev.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
-    $sshcmd -p$rport $rhost "killall -9 snap.subutai-sysnet.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
-    $sshcmd -p$rport $rhost "killall -9 p2p.service > /dev/null 2>&1" > /dev/null 2>&1
+    local thispc=$4
+    if [ -z "$thispc" ]; then
+        local sshcmd="ssh -n -p${rport} ${rhost}"
+        echo -ne "Stopping on $rhost via $rport"
+    else
+        local sshcmd="bash -c "
+        echo -ne "Stopping local p2p"
+    fi
+
+    $sshcmd "sudo killall -9 p2p > /dev/null 2>&1" > /dev/null 2>&1
+    if [ "$os" == "Linux" ]; then
+        $sshcmd "sudo killall -9 snap.subutai.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
+        $sshcmd "sudo killall -9 snap.subutai-master.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
+        $sshcmd "sudo killall -9 snap.subutai-dev.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
+        $sshcmd "sudo killall -9 snap.subutai-sysnet.p2p-service.service > /dev/null 2>&1" > /dev/null 2>&1
+        $sshcmd "sudo killall -9 p2p.service > /dev/null 2>&1" > /dev/null 2>&1
+    else
+        $sshcmd "sudo launchctl unload /Library/LaunchDaemons/io.subutai.p2p.daemon.plist > /dev/null 2>&1" > /dev/null 2>&1
+    fi
+
     show_ok
 }
 
@@ -316,28 +328,40 @@ run_file()
 stop_local_darwin()
 {
     echo -ne "Stopping local p2p"
-    sudo killall -9 p2p >/dev/null 2>&1
     sudo launchctl unload /Library/LaunchDaemons/io.subutai.p2p.daemon.plist >/dev/null 2>&1
+    sudo killall -9 p2p >/dev/null 2>&1
     show_ok
 }
 
-
-run_local_darwin()
+stop_local_linux()
 {
-    stop_local_darwin
-    echo -ne "Checking P2P build for Darwin"
-    if [ -e $DIR/p2p_osx ]; then
+    echo -ne "Stopping local p2p"
+    sudo
+}
+
+run_local()
+{
+    stop_test "1" "2" "3" "local"
+
+    if [ "$os" == "Darwin" ]; then
+        local bin_name=p2p_osx
+    else
+        local bin_name=p2p
+    fi
+
+    echo -ne "Checking P2P build for $os"
+    if [ -e $DIR/$bin_name ]; then
         show_ok
     else
         show_fail
         return 1
     fi
     echo -ne "Running daemon"
-    sudo $DIR/p2p_osx daemon > $LOG_PATH &
+    sudo $DIR/$bin_name daemon > $LOG_PATH &
     local started=0
     for i in {1..10}; do
         sleep 3
-        $DIR/p2p_osx show > /dev/null 2>&1
+        $DIR/$bin_name show > /dev/null 2>&1
         if [ $? -eq 0 ]; then
             local started=1
             show_ok
@@ -357,32 +381,13 @@ run_local_darwin()
         local ipline="10.100.1.$lround"
     fi
     echo -ne "Starting instance"
-    $DIR/p2p_osx --hash $PREFIX-working-env-1 --key working-key-1 --ip $ipline > /dev/null 2>&1
+    $DIR/$bin_name start --hash $PREFIX-working-env-1 --key working-key-1 --ip $ipline > /dev/null 2>&1
     if [ $? -ne 0 ]; then
         show_fail
     else
         show_ok
     fi
 }
-
-run_local_linux()
-{
-    echo -ne "Not implemented"
-    show_fail
-}
-
-run_local()
-{
-    echo "Starting on local machine [${os}]"
-    if [ "$os" == "Darwin" ]; then
-        run_local_darwin
-    elif [ "$os" == "Linux" ]; then
-        run_local_linux
-    else
-        show_fail
-    fi
-}
-
 
 if [ $argBuild -eq 1 ]; then
     build_p2p
