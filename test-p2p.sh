@@ -22,9 +22,6 @@ Options:
 
     --stop
         Kills remote and local p2p daemon
-
-    --file
-        Get hosts from file "hosts.list"
     
     --help
         Display this help screen
@@ -79,12 +76,12 @@ show_done()
 
 
 single=0
-remote=0
+argRemote=0
 argStop=0
-argFile=0
 argLocal=0
 argDhcp=0
 argBuild=0
+argEnvs=
 
 os=`uname -s`
 filename=hosts.list
@@ -110,7 +107,7 @@ while [ $# -ge 1 ]; do
         --single)
             single=1 ;;
         --remote)
-            remote=1 ;;
+            argRemote=1 ;;
         --local)
             argLocal=1 ;;
         --dhcp)
@@ -120,8 +117,8 @@ while [ $# -ge 1 ]; do
         --stop)
             argStop=1 
             ;;
-        --file)
-            argFile=1 ;;
+        --envs=*)
+            argEnvs="`echo ${1} | awk '{print substr($0,8)}'`" ;;
         --help)
             showhelp
             exit 0
@@ -226,15 +223,22 @@ run_remote()
         unrecoverable
     fi
 
-    $sshcmd "$REMOTE_APP set -log DEBUG > /dev/null 2>&1 &"
-    echo -ne "Starting env-${PREFIX}-1 remotely"
-    $sshcmd "$REMOTE_APP start -ip 10.100.1.${lround} -hash $PREFIX-working-env-1 -key working-key-1 > /dev/null 2>&1 &"
-    if [ $? -eq 0 ]; then
-        show_ok
-    else
-        show_fail
-        unrecoverable
-    fi
+    local counter=0
+
+    while [ $counter -lt $argEnvs ]; do
+
+        $sshcmd "$REMOTE_APP set -log DEBUG > /dev/null 2>&1 &"
+        echo -ne "Starting env-${PREFIX}-${counter} remotely"
+        $sshcmd "$REMOTE_APP start -ip 10.100.1${counter}.${lround} -hash $PREFIX-working-env-${counter} -key working-key-${counter} > /dev/null 2>&1 &"
+        if [ $? -eq 0 ]; then
+            show_ok
+        else
+            show_fail
+            unrecoverable
+        fi
+        let counter=counter+1
+
+    done
 
     echo -ne "Running checks"
     show_ok
@@ -358,27 +362,40 @@ run_local()
         return 2
     fi
 
-    if [ $argDhcp -eq 1 ]; then
-        local ipline="dhcp"
-    else
-        local lround=$round
-        let "lround++"
-        local ipline="10.100.1.$lround"
-    fi
-    echo -ne "Starting instance"
-    $DIR/$bin_name start --hash $PREFIX-working-env-1 --key working-key-1 --ip $ipline > /dev/null 2>&1
-    if [ $? -ne 0 ]; then
-        show_fail
-    else
-        show_ok
-    fi
+    
+    local counter=0
+
+    while [ $counter -lt $argEnvs ]; do
+        local envName="$PREFIX-working-env-${counter}"
+
+        if [ $argDhcp -eq 1 ]; then
+            local ipline="dhcp"
+        else
+            local lround=$round
+            let "lround++"
+            local ipline="10.100.1${counter}.$lround"
+        fi
+
+        echo -ne "Starting $envName"
+        $DIR/$bin_name start --hash $envName --key working-key-$counter --ip $ipline > /dev/null 2>&1
+        if [ $? -ne 0 ]; then
+            show_fail
+        else
+            show_ok
+        fi
+        let counter=counter+1
+    done
 }
+
+if [ ! -z "$argEnvs" ]; then
+    echo "Running ${argEnvs} environments"
+fi
 
 if [ $argBuild -eq 1 ]; then
     build_p2p
 fi
 
-if [ $argFile -eq 1 ]; then
+if [ $argRemote -eq 1 ]; then
     run_file
 fi
 
