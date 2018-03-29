@@ -22,6 +22,9 @@ Options:
 
     --stop
         Kills remote and local p2p daemon
+
+    --trace
+        Enable trace logging
     
     --help
         Display this help screen
@@ -81,6 +84,7 @@ argStop=0
 argLocal=0
 argDhcp=0
 argBuild=0
+argTrace=0
 argEnvs=
 
 os=`uname -s`
@@ -115,10 +119,11 @@ while [ $# -ge 1 ]; do
         --build)
             argBuild=1 ;;
         --stop)
-            argStop=1 
-            ;;
+            argStop=1 ;;
         --envs=*)
             argEnvs="`echo ${1} | awk '{print substr($0,8)}'`" ;;
+        --trace)
+            argTrace=1 ;;
         --help)
             showhelp
             exit 0
@@ -165,7 +170,7 @@ build_p2p()
     cd $lpwd
 }
 
-stop_remote()
+kill_remote()
 {
     local rhost=$1
     local rport=$2
@@ -194,7 +199,7 @@ run_remote()
     else
         show_fail
     fi
-    stop_remote $rhost $rport
+    kill_remote $rhost $rport
     
     echo -ne "Copying p2p to remote host"
     scp -P$rport $DIR/p2p $rhost:$REMOTE_APP > /dev/null 2>&1
@@ -228,7 +233,7 @@ run_remote()
     while [ $counter -lt $argEnvs ]; do
 
         $sshcmd "$REMOTE_APP set -log DEBUG > /dev/null 2>&1 &"
-        echo -ne "Starting env-${PREFIX}-${counter} remotely"
+        echo -ne "Starting $PREFIX-working-env-${counter} remotely"
         $sshcmd "$REMOTE_APP start -ip 10.100.1${counter}.${lround} -hash $PREFIX-working-env-${counter} -key working-key-${counter} > /dev/null 2>&1 &"
         if [ $? -eq 0 ]; then
             show_ok
@@ -246,7 +251,7 @@ run_remote()
 }
 
 
-stop_test()
+kill_test()
 {
     local rhost=$1
     local rport=$2
@@ -313,7 +318,7 @@ run_file()
         fi
 
         if [ $argStop -eq 1 ]; then
-            stop_remote $h $p $round
+            kill_remote $h $p $round
         else
             run_remote $h $p $round
         fi
@@ -330,7 +335,7 @@ run_file()
 
 run_local()
 {
-    stop_test "1" "2" "3" "local"
+    kill_test "1" "2" "3" "local"
 
     if [ "$os" == "Darwin" ]; then
         local bin_name=p2p_osx
@@ -362,6 +367,10 @@ run_local()
         return 2
     fi
 
+    if [ $argTrace -eq 1 ]; then
+        $DIR/$bin_name set -log TRACE
+    fi
+
     
     local counter=0
 
@@ -389,6 +398,8 @@ run_local()
 
 if [ ! -z "$argEnvs" ]; then
     echo "Running ${argEnvs} environments"
+else
+    argEnvs=1
 fi
 
 if [ $argBuild -eq 1 ]; then
