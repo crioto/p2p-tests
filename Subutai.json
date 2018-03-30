@@ -1,0 +1,32 @@
+{
+    "name": "p2p-integration-test",
+    "description": "Integration test for P2P",
+    "version": "1.0.0",
+    "author": "www.crioto.com",
+    "containers": [
+        {
+            "hostname": "peer1",
+            "template": "debian-stretch",
+            "peer-criteria": "TESTING",
+            "size": "TINY"
+        },
+        {
+            "hostname": "peer2",
+            "template": "debian-stretch",
+            "peer-criteria": "TESTING",
+            "size": "TINY"
+        },
+        {
+            "hostname": "peer3",
+            "template": "debian-stretch",
+            "peer-criteria": "TESTING",
+            "size": "TINY"
+        }
+    ],
+    "peer-criteria": [
+        {
+            "name": "TESTING",
+            "max-price": "25"
+        }
+    ]
+}

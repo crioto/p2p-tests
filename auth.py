@@ -40,6 +40,20 @@ class Bazaar:
         else:
             print(r.status_code, r.reason)
 
+    def variables(self):
+        print("Requesting blueprint variables")
+        if self.cookie == '':
+            return False
+
+        cookies = dict(SUBUTAI_HUB_SESSION=self.cookie)
+
+        r = requests.get("https://masterbazaar.subutai.io/rest/v1/client/blueprint/variables", cookies=cookies)
+        if r.status_code == 200:
+            j = json.loads(r.text)
+            print(j[0]['peer_id'])
+        else:
+            print(r.status_code, r.reason)
+
 
 b = Bazaar('', '')
 rc = b.auth()
