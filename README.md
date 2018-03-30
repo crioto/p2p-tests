@@ -14,3 +14,38 @@ it will start local p2p client and establish a connection with the environment.
 
 Script will run several tests in background for 10 minutes in total and then shutdown evnironment and generate
 test report.
+
+## Running
+
+Make sure you have python version 3 installed:
+
+```
+which python3
+```
+will output path to python binary: `/bin/python3`
+
+Before you start you need to install PyYAML package:
+
+```
+pip install pyyaml
+```
+
+Configure application once by moving example configuration and changing its values:
+
+```
+mv config.yaml-example config.yaml
+```
+
+Now open this file and modify "email" and "password" values. Now you can run the script:
+
+```
+./auth.py
+```
+
+If you are getting Permission Denied error run the following command:
+
+```
+chmod +x ./auth.py
+```
+
+and then try again
