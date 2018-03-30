@@ -7,25 +7,33 @@
         {
             "hostname": "peer1",
             "template": "debian-stretch",
-            "peer-criteria": "TESTING",
+            "peer-criteria": "TESTING1",
             "size": "TINY"
         },
         {
             "hostname": "peer2",
             "template": "debian-stretch",
-            "peer-criteria": "TESTING",
+            "peer-criteria": "TESTING2",
             "size": "TINY"
         },
         {
             "hostname": "peer3",
             "template": "debian-stretch",
-            "peer-criteria": "TESTING",
+            "peer-criteria": "TESTING3",
             "size": "TINY"
         }
     ],
     "peer-criteria": [
         {
-            "name": "TESTING",
+            "name": "TESTING1",
+            "max-price": "25"
+        },
+        {
+            "name": "TESTING2",
+            "max-price": "25"
+        },
+        {
+            "name": "TESTING3",
             "max-price": "25"
         }
     ]
