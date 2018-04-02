@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 
 import http.client
 import requests
@@ -165,7 +165,7 @@ class Bazaar:
 
         while True:
             if passed > maxTime:
-                print("Couldn't finish for environment to finish build for " + maxTime)
+                print("Couldn't finish for environment to finish build for " + str(maxTime))
                 return False
             
             time.sleep(updatePeriod)
