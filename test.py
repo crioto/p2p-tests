@@ -3,9 +3,11 @@
 import http.client
 import requests
 import json
-from time import sleep
+import time
 import yaml
-
+import pinger
+import p2p
+import result
 
 
 class Bazaar:
@@ -47,8 +49,6 @@ class Bazaar:
         if r.status_code == 200:
             j = json.loads(r.text)
             for peer in j:
-                print(peer)
-                print("===================")
                 self.peers.append(peer['peer_id'])
             
         else:
@@ -168,12 +168,11 @@ class Bazaar:
                 print("Couldn't finish for environment to finish build for " + maxTime)
                 return False
             
-            sleep(updatePeriod)
+            time.sleep(updatePeriod)
             passed = passed + updatePeriod
             self.environments()
             for env in self.envs:
                 if env['environment_name'] == self.envName:
-                    print(111)
                     if env['environment_status'] == 'UNHEALTHY':
                         print("Failed to build healthy environment")
                         return False
@@ -182,6 +181,33 @@ class Bazaar:
                         return True
 
         return False
+
+    def hosts(self):
+        ips = []
+        for env in self.envs:
+            for container in env['environment_containers']:
+                ips.append(container['rh_ip'])
+
+        return ips
+
+    def getHashes(self):
+        hashes = []
+        for env in self.envs:
+            if env['environment_name'] != self.envName:
+                continue
+
+            t = (env['environment_hash'], env['environment_key'])
+            hashes.append(t)
+
+        return hashes
+
+
+    def getHash(self):
+        for env in self.envs:
+            if env['environment_name'] == self.envName:
+                return env['environment_hash']
+        
+        return ''
 
 
 envName = "p2p-integration-test"
@@ -206,10 +232,33 @@ if rc != True:
     print("Terminating")
     exit
 
-
 if b.environments() != True:
     print("Failed to get environments")
     exit(4)
+
+
+################################################################################
+hosts = b.hosts()
+daemon = p2p.Daemon()
+daemon.start()
+
+time.sleep(10)
+hashes = b.getHashes()
+for h in hashes:
+    rc = p2p.StartP2P(h[0], h[1])
+    if rc != 0: 
+        print("Failed to start P2P instance. Stopping test")
+        p2p.DaemonRunning = False
+        daemon.kill() 
+
+started = time.time()
+
+while True:
+    time.sleep(5)
+    p2p.CheckP2P(b.getHash(), hosts)
+
+exit(0)
+################################################################################
 
 destroyInProgress = False
 if b.isEnvExists(envName) == True:
@@ -225,7 +274,7 @@ if b.isEnvExists(envName) == True:
 if destroyInProgress == True:
     attempts = 0
     while destroyInProgress == True:
-        sleep(destroyWaitPeriod)
+        time.sleep(destroyWaitPeriod)
         b.environments()
         if b.isEnvExists(envName) == True:
             attempts = attempts + 1
