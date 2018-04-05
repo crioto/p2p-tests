@@ -1,2 +1,4 @@
 *.list
 config.yaml
+__pycache__
+p2p

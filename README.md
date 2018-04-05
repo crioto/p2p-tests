@@ -39,13 +39,13 @@ mv config.yaml-example config.yaml
 Now open this file and modify "email" and "password" values. Now you can run the script:
 
 ```
-./auth.py
+./test.py
 ```
 
 If you are getting Permission Denied error run the following command:
 
 ```
-chmod +x ./auth.py
+chmod +x ./test.py
 ```
 
 and then try again
