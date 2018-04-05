@@ -21,11 +21,12 @@ class Pinger(threading.Thread):
         success = 0
         fails = 0
         while PingRunning == True:
-            rc = call(['ping', self.ip, '-c', '10'])
-            if rc == 0:
-                success = success + 1
-            else:
-                fails = fails + 1
+            for i in range(10):
+                rc = call(['ping', self.ip, '-c', '1'])
+                if rc == 0:
+                    success = success + 1
+                else:
+                    fails = fails + 1
             PingRunning=False
 
         print("Results for " + self.ip)
