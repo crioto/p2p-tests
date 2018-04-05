@@ -4,7 +4,7 @@ from subprocess import call
 PingRunning = True
 
 class Pinger(threading.Thread):
-    
+
     ip = ''
 
 
@@ -17,17 +17,18 @@ class Pinger(threading.Thread):
             print("No IP provided")
             return False
         global PingRunning
+        PingRunning=True
         success = 0
         fails = 0
         while PingRunning == True:
-            rc = call('ping', self.ip, '-c', '1')
+            rc = call(['ping', self.ip, '-c', '10'])
             if rc == 0:
                 success = success + 1
             else:
                 fails = fails + 1
+            PingRunning=False
 
         print("Results for " + self.ip)
-        print("Success: " + success)
-        print("Fails: " + fails)
-        os._exit(1)
+        print("Success: " + str(success))
+        print("Fails: " + str(fails))
         return True

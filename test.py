@@ -11,7 +11,7 @@ import result
 
 
 class Bazaar:
-    
+
     username = ''
     password = ''
     cookie = ''
@@ -45,15 +45,15 @@ class Bazaar:
         cookies = dict(SUBUTAI_HUB_SESSION=self.cookie)
 
         r = requests.get("https://masterbazaar.subutai.io/rest/v1/client/peers/favorite", cookies=cookies)
-        
+
         if r.status_code == 200:
             j = json.loads(r.text)
             for peer in j:
                 self.peers.append(peer['peer_id'])
-            
+
         else:
             print(r.status_code, r.reason)
-        
+
         return self.peers
 
 
@@ -140,7 +140,7 @@ class Bazaar:
         else:
             print(r.status_code, r.reason)
         return False
-        
+
 
     def readBlueprint(self):
         print("Reading Subutai.json")
@@ -150,11 +150,11 @@ class Bazaar:
 
     def isEnvExists(self, name):
         print("Checking if environment " + name + " exists")
-        
+
         for env in self.envs:
             if env['environment_name'] == name:
                 return True
-        
+
         return False
 
     def wait(self):
@@ -167,7 +167,7 @@ class Bazaar:
             if passed > maxTime:
                 print("Couldn't finish for environment to finish build for " + str(maxTime))
                 return False
-            
+
             time.sleep(updatePeriod)
             passed = passed + updatePeriod
             self.environments()
@@ -206,7 +206,7 @@ class Bazaar:
         for env in self.envs:
             if env['environment_name'] == self.envName:
                 return env['environment_hash']
-        
+
         return ''
 
 
@@ -235,30 +235,6 @@ if rc != True:
 if b.environments() != True:
     print("Failed to get environments")
     exit(4)
-
-
-################################################################################
-hosts = b.hosts()
-daemon = p2p.Daemon()
-daemon.start()
-
-time.sleep(10)
-hashes = b.getHashes()
-for h in hashes:
-    rc = p2p.StartP2P(h[0], h[1])
-    if rc != 0: 
-        print("Failed to start P2P instance. Stopping test")
-        p2p.DaemonRunning = False
-        daemon.kill() 
-
-started = time.time()
-
-while True:
-    time.sleep(5)
-    p2p.CheckP2P(b.getHash(), hosts)
-
-exit(0)
-################################################################################
 
 destroyInProgress = False
 if b.isEnvExists(envName) == True:
@@ -293,3 +269,38 @@ if rc != True:
     exit(10)
 
 print("Build completed")
+
+
+hosts = b.hosts()
+daemon = p2p.Daemon()
+daemon.start()
+
+time.sleep(10)
+hashes = b.getHashes()
+for h in hashes:
+    rc = p2p.StartP2P(h[0], h[1])
+    if rc != 0:
+        print("Failed to start P2P instance. Stopping test")
+        p2p.DaemonRunning = False
+        daemon.kill()
+
+started = time.time()
+
+time.sleep(5)
+p2p.CheckP2P(b.getHash(), hosts)
+
+print("\nWaiting 60 seconds\n\n")
+#Wait 60 seconds while container status become READY
+time.sleep(60)
+
+print("Start to pinging\n")
+p=pinger.Pinger()
+for i in hosts:
+    p.setIP(i)
+    b=p.run()
+    if b==True:
+        print("PING for",i,"is done")
+        print('\n\n')
+
+print("End")
+exit(0)
