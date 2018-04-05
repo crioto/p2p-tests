@@ -296,11 +296,16 @@ time.sleep(60)
 print("Start to pinging\n")
 p=pinger.Pinger()
 for i in hosts:
+    r=result.Result(i)
+    p.setResult(r)
     p.setIP(i)
     b=p.run()
     if b==True:
         print("PING for",i,"is done")
         print('\n\n')
+    print("\nRESULTS of",i,":\n")
+    p.r.produce()
+    print('\n\n')
 
 print("End")
 exit(0)
