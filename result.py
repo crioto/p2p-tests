@@ -1,7 +1,7 @@
 import time
 
 class Result:
-    
+
     ip = ''
     started = 0
     firstConnected = 0
@@ -13,14 +13,14 @@ class Result:
         self.started = time.time()
         return
 
-    
+
     def indicateConnected(self):
         if firstConnected == 0:
             firstConnected = time.time()
 
         return
 
-    
+
     def addPingResults(self, success, fails):
         self.success = success
         self.fails = fails
@@ -28,8 +28,8 @@ class Result:
 
     def produce(self):
         print("Peer " + self.ip)
-        print("Started connection at " + self.started)
-        print("First connected at " + self.firstConnected)
+        print("Started connection at " + str(self.started))
+        print("First connected at " + str(self.firstConnected))
         print("Ping results: ")
-        print("\tSucceed: " + self.success)
-        print("\tFailed: " + self.fails)
+        print("\tSucceed: " + str(self.success))
+        print("\tFailed: " + str(self.fails))
