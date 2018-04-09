@@ -273,11 +273,6 @@ if rc != True:
 
 print("Build completed")
 
-code=p2p.check()
-if code==111:
-    print("\nStop test. Error. Please check if p2p installed")
-    exit()
-
 hosts = b.hosts()
 daemon = p2p.Daemon()
 daemon.start()
