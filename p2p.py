@@ -15,7 +15,6 @@ class Daemon(threading.Thread):
     def kill(self):
         call(['killall', '-9', 'p2p'])
 
-
 def StartP2P(ehash, ekey):
     return call(['p2p', 'start', '--hash', ehash, '--key', ekey])
 

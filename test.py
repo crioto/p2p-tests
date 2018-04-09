@@ -83,6 +83,9 @@ class Bazaar:
             return False
 
         cookies = dict(SUBUTAI_HUB_SESSION=self.cookie)
+        if len(self.peers)<3:
+            print("You don't have enough peers. This blueprint requires 3 peers, but only 2 is available. Please add own peers or select favorites.")
+            exit(15)
 
         chosenPeers = ""
         pc = 0
@@ -230,7 +233,7 @@ b = Bazaar(data['email'], data['password'], envName)
 rc = b.auth()
 if rc != True:
     print("Terminating")
-    exit
+    exit()
 
 if b.environments() != True:
     print("Failed to get environments")
@@ -270,7 +273,6 @@ if rc != True:
 
 print("Build completed")
 
-
 hosts = b.hosts()
 daemon = p2p.Daemon()
 daemon.start()
@@ -290,7 +292,7 @@ time.sleep(5)
 p2p.CheckP2P(b.getHash(), hosts)
 
 print("\nWaiting 60 seconds\n\n")
-#Wait 60 seconds while container status become READY
+#Wait 60 seconds while containers status become READY
 time.sleep(60)
 
 print("Start to pinging\n")
@@ -302,10 +304,10 @@ for i in hosts:
     b=p.run()
     if b==True:
         print("PING for",i,"is done")
-        print('\n\n')
+        print('\n')
     print("\nRESULTS of",i,":\n")
     p.r.produce()
-    print('\n\n')
+    print('\n')
 
 print("End")
 exit(0)
