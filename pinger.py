@@ -1,15 +1,20 @@
 import threading, sys, os
 from subprocess import call
+import result
 
 PingRunning = True
 
 class Pinger(threading.Thread):
 
     ip = ''
+    r=result.Result
 
 
     def setIP(self, ip):
         self.ip = ip
+
+    def setResult(self,r):
+        self.r=r
 
 
     def run(self):
@@ -32,4 +37,5 @@ class Pinger(threading.Thread):
         print("Results for " + self.ip)
         print("Success: " + str(success))
         print("Fails: " + str(fails))
+        self.r.addPingResults(success,fails)
         return True
