@@ -15,6 +15,14 @@ class Daemon(threading.Thread):
     def kill(self):
         call(['killall', '-9', 'p2p'])
 
+def Check():
+    try:
+        p=Popen('p2p',stdin=PIPE,stdout=PIPE,stderr=PIPE)
+        code=p.wait()
+    except:
+        code=101
+    return code
+
 def StartP2P(ehash, ekey):
     return call(['p2p', 'start', '--hash', ehash, '--key', ekey])
 
