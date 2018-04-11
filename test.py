@@ -216,14 +216,17 @@ class Bazaar:
 envName = "p2p-integration-test"
 maxDestroyWait = 300
 destroyWaitPeriod = 10
-
-with open("config.yaml", 'r') as stream:
-    try:
-        data = yaml.load(stream)
-    except yaml.YAMLError as exc:
-        print(exc)
-        print("Check if config.yaml exists and it's readable")
-        exit(2)
+try:
+    with open("config.yaml", 'r') as stream:
+        try:
+            data = yaml.load(stream)
+        except yaml.YAMLError as exc:
+            print(exc)
+            print("Check if config.yaml exists and it's readable")
+            exit(2)
+except:
+    print("Check if config.yaml exists and it's readable")
+    exit()
 
 if data['email'] == '' or data['password'] == '':
     print("Wrong data has been provided in config ")
@@ -272,6 +275,11 @@ if rc != True:
     exit(10)
 
 print("Build completed")
+
+code=p2p.Check()
+if code!=0:
+    print("Test is stopped. Check if p2p is installed")
+    exit(17)
 
 hosts = b.hosts()
 daemon = p2p.Daemon()
