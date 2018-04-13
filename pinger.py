@@ -33,9 +33,5 @@ class Pinger(threading.Thread):
                 else:
                     fails = fails + 1
             PingRunning=False
-
-        print("Results for " + self.ip)
-        print("Success: " + str(success))
-        print("Fails: " + str(fails))
         self.r.addPingResults(success,fails)
         return True
