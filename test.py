@@ -105,6 +105,7 @@ class Bazaar:
         else:
             print(r.status_code, r.reason)
             print(r.text)
+            exit()
 
 
     def destroy(self, name):
@@ -294,7 +295,7 @@ for h in hashes:
         p2p.DaemonRunning = False
         daemon.kill()
 
-started = time.time()
+started = time.asctime(time.localtime(time.time()))
 
 time.sleep(5)
 p2p.CheckP2P(b.getHash(), hosts)
@@ -309,13 +310,37 @@ for i in hosts:
     r=result.Result(i)
     p.setResult(r)
     p.setIP(i)
-    b=p.run()
-    if b==True:
+    bb=p.run()
+    if bb==True:
         print("PING for",i,"is done")
-        print('\n')
+
     print("\nRESULTS of",i,":\n")
     p.r.produce()
     print('\n')
+
+destroyInProgress = False
+print("Destroying environment.")
+rc = b.destroy(envName)
+if rc != True:
+    print("Failed to destroy environment")
+    exit(5)
+else:
+    print("Destroy process has been started")
+    destroyInProgress = True
+
+if destroyInProgress == True:
+    attempts = 0
+    while destroyInProgress == True:
+        time.sleep(destroyWaitPeriod)
+        b.environments()
+        if b.isEnvExists(envName) == True:
+            attempts = attempts + 1
+        else:
+            print("Environment was destroyed")
+            destroyInProgress = False
+        if attempts > maxDestroyWait / destroyWaitPeriod:
+            print("Destroy failed after " + maxDestroyWait + " seconds timeout")
+            exit(6)
 
 print("End")
 exit(0)

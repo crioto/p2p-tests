@@ -10,13 +10,13 @@ class Result:
 
     def __init__(self, ip):
         self.ip = ip
-        self.started = time.time()
+        self.started = time.asctime(time.localtime(time.time()))
         return
 
 
     def indicateConnected(self):
         if firstConnected == 0:
-            firstConnected = time.time()
+            firstConnected = time.asctime(time.localtime(time.time()))
 
         return
 
