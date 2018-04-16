@@ -105,6 +105,7 @@ class Bazaar:
         else:
             print(r.status_code, r.reason)
             print(r.text)
+            exit()
 
 
     def destroy(self, name):
